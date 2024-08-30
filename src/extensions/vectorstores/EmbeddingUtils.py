@@ -1,5 +1,7 @@
 # SPDX-License-Identifier: Apache-2.0
 
+from langchain.embeddings.ollama import OllamaEmbeddings 
+
 from langchain.embeddings.huggingface import HuggingFaceInferenceAPIEmbeddings
 from langchain.embeddings.openai import OpenAIEmbeddings
 from nifiapi.properties import PropertyDependency, PropertyDescriptor, StandardValidators
@@ -8,16 +10,38 @@ from nifiapi.properties import PropertyDependency, PropertyDescriptor, StandardV
 ONNX_ALL_MINI_LM_L6_V2 = "ONNX all-MiniLM-L6-v2 Model"
 HUGGING_FACE = "Hugging Face Model"
 OPENAI = "OpenAI Model"
+OLLAMA = "Ollama Model"
 SENTENCE_TRANSFORMERS = "Sentence Transformers"
 
 
 EMBEDDING_FUNCTION = PropertyDescriptor(
     name="Embedding Function",
     description="Specifies which embedding function should be used in order to create embeddings from incoming Documents",
-    allowable_values=[ONNX_ALL_MINI_LM_L6_V2, HUGGING_FACE, OPENAI, SENTENCE_TRANSFORMERS],
+    allowable_values=[ONNX_ALL_MINI_LM_L6_V2, HUGGING_FACE, OPENAI, OLLAMA, SENTENCE_TRANSFORMERS],
     default_value=ONNX_ALL_MINI_LM_L6_V2,
     required=True,
 )
+
+
+OLLAMA_MN = PropertyDescriptor(
+    name="Ollama Model Name",
+    description="The name of the ollama model to use",    
+    default_value="llama2",
+    validators=[StandardValidators.NON_EMPTY_VALIDATOR],
+    required=True,
+    dependencies=[PropertyDependency(EMBEDDING_FUNCTION, OLLAMA)],
+)
+
+
+OLLAMA_HOST = PropertyDescriptor(
+    name="Ollama Host",
+    description="Ollama host",    
+    default_value="http://localhost:11434",
+    validators=[StandardValidators.URL_VALIDATOR],
+    required=True,
+    dependencies=[PropertyDependency(EMBEDDING_FUNCTION, OLLAMA)],
+)
+
 HUGGING_FACE_MODEL_NAME = PropertyDescriptor(
     name="HuggingFace Model Name",
     description="The name of the HuggingFace model to use",
@@ -97,12 +121,14 @@ SENTENCE_TRANSFORMER_DEVICE = PropertyDescriptor(
 EMBEDDING_MODEL = PropertyDescriptor(
     name="Embedding Model",
     description="Specifies which embedding model should be used in order to create embeddings from incoming Documents. Default model is OpenAI.",
-    allowable_values=[HUGGING_FACE, OPENAI],
+    allowable_values=[HUGGING_FACE, OPENAI, OLLAMA],
     default_value=OPENAI,
     required=True,
 )
 PROPERTIES = [
     EMBEDDING_FUNCTION,
+    OLLAMA_HOST,
+    OLLAMA_MN,
     HUGGING_FACE_MODEL_NAME,
     HUGGING_FACE_API_KEY,
     OPENAI_MODEL_NAME,
@@ -123,12 +149,18 @@ def create_embedding_function(context):
         ONNXMiniLM_L6_V2,
         OpenAIEmbeddingFunction,
         SentenceTransformerEmbeddingFunction,
+        OllamaEmbeddingFunction,
     )
 
     function_name = context.getProperty(EMBEDDING_FUNCTION).getValue()
     if function_name == ONNX_ALL_MINI_LM_L6_V2:
         return ONNXMiniLM_L6_V2()
-
+        
+    if function_name == OLLAMA:
+        model_name = context.getProperty(OLLAMA_MN).getValue()
+        host = context.getProperty(OLLAMA_HOST).getValue()
+        return OllamaEmbeddingFunction(host=host, model_name=model_name)
+    
     if function_name == OPENAI:
         api_key = context.getProperty(OPENAI_API_KEY).getValue()
         model_name = context.getProperty(OPENAI_MODEL_NAME).getValue()
@@ -157,9 +189,15 @@ def create_embedding_function(context):
 
 def create_embedding_service(context):
     embedding_service = context.getProperty(EMBEDDING_MODEL).getValue()
+    
+    if embedding_service == OLLAMA:
+        ollama_model_name = context.getProperty(OLLAMA_MN).getValue()
+        ollama_host = context.getProperty(OLLAMA_HOST).getValue()         
+        return OllamaEmbeddings(base_url=ollama_host, model=ollama_model_name)
 
     if embedding_service == OPENAI:
         openai_api_key = context.getProperty(OPENAI_API_KEY).getValue()
         return OpenAIEmbeddings(openai_api_key=openai_api_key)
-    huggingface_api_key = context.getProperty(HUGGING_FACE_API_KEY).getValue()
-    return HuggingFaceInferenceAPIEmbeddings(api_key=huggingface_api_key)
+    if embedding_service == HUGGING_FACE:
+    	huggingface_api_key = context.getProperty(HUGGING_FACE_API_KEY).getValue()
+    	return HuggingFaceInferenceAPIEmbeddings(api_key=huggingface_api_key)
