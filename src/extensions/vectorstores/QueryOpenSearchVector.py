@@ -8,6 +8,8 @@ from nifiapi.flowfiletransform import FlowFileTransform, FlowFileTransformResult
 from nifiapi.properties import ExpressionLanguageScope, PropertyDependency, PropertyDescriptor, StandardValidators
 from OpenSearchVectorUtils import (
     COSINESIMIL,
+    OLLAMA_HOST,
+    OLLAMA_MN,
     HTTP_HOST,
     HUGGING_FACE_API_KEY,
     HUGGING_FACE_MODEL,
@@ -133,6 +135,8 @@ class QueryOpenSearchVector(FlowFileTransform):
 
     properties = [
         EMBEDDING_MODEL,
+        OLLAMA_HOST,
+        OLLAMA_MN,
         OPENAI_API_KEY,
         OPENAI_API_MODEL,
         HUGGING_FACE_API_KEY,
