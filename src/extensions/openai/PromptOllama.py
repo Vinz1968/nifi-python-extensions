@@ -43,7 +43,7 @@ class PromptOllama(FlowFileTransform):
     MODEL = PropertyDescriptor(
         name="Ollama Model Name",
         description="The name of the Ollama Model to use in order to answer the prompt",
-        default_value="llama",
+        default_value="llama2",
         expression_language_scope=ExpressionLanguageScope.FLOWFILE_ATTRIBUTES,
         validators=[StandardValidators.NON_EMPTY_VALIDATOR],
         required=True,
