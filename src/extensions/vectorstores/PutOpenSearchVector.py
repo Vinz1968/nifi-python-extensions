@@ -8,6 +8,8 @@ from nifiapi.properties import ExpressionLanguageScope, PropertyDependency, Prop
 from OpenSearchVectorUtils import (
     COSINESIMIL,
     HTTP_HOST,
+    OLLAMA_MN,
+    OLLAMA_HOST,
     HUGGING_FACE_API_KEY,
     HUGGING_FACE_MODEL,
     INDEX_NAME,
@@ -185,6 +187,8 @@ class PutOpenSearchVector(FlowFileTransform):
         EMBEDDING_MODEL,
         OPENAI_API_KEY,
         OPENAI_API_MODEL,
+        OLLAMA_HOST,
+        OLLAMA_MN,
         HUGGING_FACE_API_KEY,
         HUGGING_FACE_MODEL,
         HTTP_HOST,
