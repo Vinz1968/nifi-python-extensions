@@ -1,6 +1,6 @@
 # SPDX-License-Identifier: Apache-2.0
 
-from EmbeddingUtils import EMBEDDING_MODEL, HUGGING_FACE, OPENAI
+from EmbeddingUtils import EMBEDDING_MODEL, HUGGING_FACE, OPENAI, OLLAMA
 from nifiapi.properties import ExpressionLanguageScope, PropertyDependency, PropertyDescriptor, StandardValidators
 
 # Space types
@@ -8,6 +8,25 @@ L2 = ("L2 (Euclidean distance)", "l2")
 L1 = ("L1 (Manhattan distance)", "l1")
 LINF = ("L-infinity (chessboard) distance", "linf")
 COSINESIMIL = ("Cosine similarity", "cosinesimil")
+
+
+OLLAMA_HOST = PropertyDescriptor(
+    name="Ollama Host",
+    description="Ollama host",
+    default_value="http://localhost:11434",
+    required=True,
+    validators=[StandardValidators.URL_VALIDATOR],
+    dependencies=[PropertyDependency(EMBEDDING_MODEL, OLLAMA)],
+)
+
+OLLAMA_MN = PropertyDescriptor(
+    name="Ollama Model Name",
+    description="The name of the Ollama model to use",    
+    default_value="llama2",
+    required=True,
+    validators=[StandardValidators.NON_EMPTY_VALIDATOR],
+    dependencies=[PropertyDependency(EMBEDDING_MODEL, OLLAMA)],
+)
 
 HUGGING_FACE_API_KEY = PropertyDescriptor(
     name="HuggingFace API Key",
